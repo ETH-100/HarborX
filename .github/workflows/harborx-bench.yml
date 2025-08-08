@@ -10,10 +10,8 @@ on:
 
 jobs:
   bench:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     env:
       ROWS: 500000
@@ -21,8 +19,8 @@ jobs:
       UPDATE_RATIO: "0.5"
       WORKERS: 4
       CHUNK: 200000
-      WINDOWS: 1,4,16,64
-      OUT_MD: report_windows.md
+      WINDOWS: 1,4,16
+      OUT_MD: report_ubuntu.md
 
     steps:
       - uses: actions/checkout@v4
@@ -33,30 +31,15 @@ jobs:
           cache: "pip"
 
       - name: Install deps
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      # Unix/macOS
-      - name: Run benchmark (Unix)
-        if: runner.os != 'Windows'
+      - name: Run benchmark
         shell: bash
         run: |
           chmod +x scripts/report_unix.sh
           ./scripts/report_unix.sh
-
-      # Windows
-      - name: Run benchmark (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          python scripts/report.py `
-            --rows $env:ROWS `
-            --parts $env:PARTS `
-            --update-ratio $env:UPDATE_RATIO `
-            --workers $env:WORKERS `
-            --chunk $env:CHUNK `
-            --windows $env:WINDOWS `
-            --out $env:OUT_MD `
-            --no-exact
 
       - name: Publish run summary
         if: always()
@@ -70,7 +53,6 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: harborx-benchmark-${{ matrix.os }}
-          path: |
-            report_windows.md
+          name: harborx-benchmark-ubuntu
+          path: ${{ env.OUT_MD }}
           if-no-files-found: warn
