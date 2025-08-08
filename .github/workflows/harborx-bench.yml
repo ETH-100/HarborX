@@ -1,0 +1,76 @@
+name: HarborX Benchmarks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - "requirements.txt"
+  workflow_dispatch: {}
+
+jobs:
+  bench:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    env:
+      ROWS: 500000
+      PARTS: 16
+      UPDATE_RATIO: "0.5"
+      WORKERS: 4
+      CHUNK: 200000
+      WINDOWS: 1,4,16,64
+      OUT_MD: report_windows.md
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      # Unix/macOS
+      - name: Run benchmark (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          chmod +x scripts/report_unix.sh
+          ./scripts/report_unix.sh
+
+      # Windows
+      - name: Run benchmark (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          python scripts/report.py `
+            --rows $env:ROWS `
+            --parts $env:PARTS `
+            --update-ratio $env:UPDATE_RATIO `
+            --workers $env:WORKERS `
+            --chunk $env:CHUNK `
+            --windows $env:WINDOWS `
+            --out $env:OUT_MD `
+            --no-exact
+
+      - name: Publish run summary
+        if: always()
+        shell: bash
+        run: |
+          echo "# HarborX Window-Size Benchmark" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$OUT_MD" ]; then
+            cat "$OUT_MD" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: harborx-benchmark-${{ matrix.os }}
+          path: |
+            report_windows.md
+          if-no-files-found: warn

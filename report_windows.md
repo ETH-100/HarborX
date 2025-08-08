@@ -4,25 +4,22 @@
   Update ratio: **0.50** → keyspace≈**4,000,000**
 - Workers: **4**, chunk: **200,000**
 
-- Arrow write (all parts): **36.338s**, SQLite append (all parts): **79.344s**
+- Arrow write (all parts): **19.859s**, SQLite append (all parts): **77.029s**
 
 ## Window W = 1
-
-| Path   | Compact (base) | Live query | TTF (base+live) |
-|--------|---------------:|-----------:|----------------:|
-| Arrow  |         10.115s|      0.621s|        **10.736s** |
-| SQLite |         47.790s|      5.065s|        **52.855s** |
+| Path | Compact (base) | Live query | TTF (base+live) |
+|---|---:|---:|---:|
+| Arrow | 9.783s | 0.514s | **10.297s** |
+| SQLite | 43.546s | 5.201s | **48.747s** |
 
 ## Window W = 4
-
-| Path   | Compact (base) | Live query | TTF (base+live) |
-|--------|---------------:|-----------:|----------------:|
-| Arrow  |         10.643s|      0.868s|        **11.511s** |
-| SQLite |         32.504s|     10.941s|        **43.445s** |
+| Path | Compact (base) | Live query | TTF (base+live) |
+|---|---:|---:|---:|
+| Arrow | 8.643s | 0.890s | **9.533s** |
+| SQLite | 33.498s | 11.055s | **44.552s** |
 
 ## Window W = 16
-
-| Path   | Compact (base) | Live query | TTF (base+live) |
-|--------|---------------:|-----------:|----------------:|
-| Arrow  |          1.329s|      3.202s|         **4.531s** |
-| SQLite |          3.081s|     34.356s|        **37.438s** |
+| Path | Compact (base) | Live query | TTF (base+live) |
+|---|---:|---:|---:|
+| Arrow | 0.513s | 3.457s | **3.970s** |
+| SQLite | 4.269s | 36.765s | **41.034s** |
