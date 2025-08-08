@@ -1,3 +1,4 @@
 pyarrow>=14.0.1
 datafusion>=38.0.0
 duckdb>=1.0.0
+python-dotenv>=1.0.1
