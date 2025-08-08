@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+/lake/
+.bootstrap.py
+
 # C extensions
 *.so
 
