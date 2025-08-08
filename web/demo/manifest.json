@@ -1,0 +1,14 @@
+{
+  "parquet": [
+    "demo/parquet/blob_000001.parquet",
+    "demo/parquet/blob_000002.parquet",
+    "demo/parquet/blob_000003.parquet",
+    "demo/parquet/blob_000004.parquet"
+  ],
+  "arrow": [
+    "demo/lake/hot/blob_000001.arrow",
+    "demo/lake/hot/blob_000002.arrow",
+    "demo/lake/hot/blob_000003.arrow",
+    "demo/lake/hot/blob_000004.arrow"
+  ]
+}

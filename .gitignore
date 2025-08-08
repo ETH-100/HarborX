@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 
 /lake/
+!demo/**
+
 .bootstrap.py
 
 # C extensions

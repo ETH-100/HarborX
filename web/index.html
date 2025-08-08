@@ -1,36 +1,101 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>HarborX SQL Demo</title>
+  <title>HarborX SQL Demo (Pure Frontend)</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:1100px;margin:32px auto;padding:0 16px}
-    textarea{width:100%;min-height:160px;font-family:ui-monospace,Consolas,monospace;font-size:14px}
-    table{border-collapse:collapse;width:100%;margin-top:12px}
-    th,td{border:1px solid #ddd;padding:6px 8px;font-size:13px}
-    th{background:#f5f5f5;text-align:left}
-    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-    .muted{color:#666}
-    .btn{padding:8px 14px;border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer}
-    .btn:hover{background:#f7f7f7}
-    .pill{padding:4px 8px;border-radius:999px;background:#f0f0f0}
-    .error{color:#b00020}
-    .mono{font-family:ui-monospace,Consolas,monospace}
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 16px
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 14px
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 12px
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 6px 8px;
+      font-size: 13px;
+      vertical-align: top
+    }
+
+    th {
+      background: #f5f5f5;
+      text-align: left;
+      position: sticky;
+      top: 0
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .muted {
+      color: #666
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border: 1px solid #ccc;
+      background: #fff;
+      border-radius: 6px;
+      cursor: pointer
+    }
+
+    .btn:hover {
+      background: #f7f7f7
+    }
+
+    .pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #f0f0f0
+    }
+
+    .error {
+      color: #b00020;
+      white-space: pre-wrap
+    }
+
+    .mono {
+      font-family: ui-monospace, Consolas, monospace
+    }
+
+    .footer {
+      margin-top: 18px;
+      color: #888;
+      font-size: 12px
+    }
   </style>
 </head>
+
 <body>
-  <h1>HarborX SQL Demo</h1>
-  <p class="muted">Run SQL against <b>Arrow (DuckDB)</b> or <b>SQLite</b> built from your latest benchmark run.</p>
+  <h1>HarborX SQL</h1>
+  <p class="muted">Runs DuckDB (WASM) in your browser. Loads Arrow IPC files from <code>demo/lake/hot/</code> and
+    creates a <code>state</code> view.</p>
 
   <div class="row" style="margin:12px 0">
-    <label>Engine:</label>
-    <select id="engine">
-      <option value="arrow_bridge">Arrow (DuckDB bridge)</option>
-      <option value="arrow_ext">Arrow (DuckDB ext)</option>
-      <option value="sqlite">SQLite</option>
-    </select>
-    <span id="status" class="pill">Idle</span>
+    <span id="status" class="pill">Booting…</span>
+    <span id="meta" class="muted"></span>
   </div>
 
   <div class="row">
@@ -38,71 +103,192 @@
     <select id="examples">
       <option value="">-- choose --</option>
       <option value="SELECT COUNT(*) AS rows FROM state;">COUNT rows (state)</option>
-      <option value="SELECT key, MAX(timestamp) AS ts FROM state GROUP BY key LIMIT 100;">LWW per key (LIMIT 100)</option>
-      <option value="WITH ranked AS ( SELECT key, value, timestamp, blob_index, position, ROW_NUMBER() OVER (PARTITION BY key ORDER BY timestamp DESC, blob_index DESC, position DESC) AS rn FROM state ) SELECT COUNT(*) AS unique_keys FROM ranked WHERE rn=1;">LWW count (window)</option>
+      <option value="SELECT key, MAX(timestamp) AS ts FROM state GROUP BY key LIMIT 100;">LWW per key (LIMIT 100)
+      </option>
+      <option
+        value="WITH ranked AS ( SELECT key, value, timestamp, blob_index, position, ROW_NUMBER() OVER (PARTITION BY key ORDER BY timestamp DESC, blob_index DESC, position DESC) rn FROM state ) SELECT COUNT(*) AS unique_keys FROM ranked WHERE rn=1;">
+        LWW count (window)</option>
     </select>
     <button class="btn" id="fill">Insert</button>
+    <button class="btn" id="init">Rebuild state</button>
   </div>
 
   <textarea id="sql" placeholder="Write your SQL here..."></textarea>
   <div class="row" style="margin-top:8px">
     <button class="btn" id="run">Run</button>
-    <span class="muted">Result rows are fully returned; for huge outputs, add LIMIT.</span>
+    <span class="muted">Use LIMIT for large outputs.</span>
   </div>
 
-  <p id="meta" class="muted"></p>
   <div id="error" class="error"></div>
   <div id="result"></div>
 
-  <script>
-    const el = (id) => document.getElementById(id);
-    const status = el('status');
+  <div class="footer">
+    <span class="mono">manifest</span> is fetched from <code>demo/manifest.json</code>. Arrow files are fetched via HTTP
+    and scanned with <code>read_ipc</code>.
+  </div>
 
+  <script type="module">
+    // DuckDB (WASM) ESM
+    import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.28.0/+esm";
+
+    // ---------- DOM helpers ----------
+    const el = (id) => document.getElementById(id);
+    const href = (p) => new URL(p, document.baseURI).href;
+
+    const statusEl = el('status');
+    const metaEl = el('meta');
+    const errorEl = el('error');
+    const resultEl = el('result');
+
+    const setStatus = (t, color = "#f0f0f0") => { statusEl.textContent = t; statusEl.style.background = color; };
+    const showError = (msg) => { errorEl.textContent = msg || ""; };
+    const clearOutput = () => { errorEl.textContent = ""; resultEl.innerHTML = ""; };
+
+    // ---------- Pick a non-threaded bundle (no COOP/COEP needed) ----------
+    function pickNonThreadBundle(bundles) {
+      return bundles.browser ?? bundles.mvp
+        ?? Object.values(bundles).find(b => /browser|mvp/.test(b.mainWorker))
+        ?? Object.values(bundles)[0];
+    }
+
+    // Fetch worker JS, turn into same-origin blob URL to avoid cross-origin Worker restrictions
+    async function sameOriginWorkerURL(url) {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error(`fetch worker failed: ${res.status} ${res.statusText}`);
+      const js = await res.text();
+      return URL.createObjectURL(new Blob([js], { type: "text/javascript" }));
+    }
+
+    // ---------- Boot DuckDB (WASM) ----------
+    setStatus("Booting…", "#e8eefc");
+    const bundles = duckdb.getJsDelivrBundles();
+    const bundle = pickNonThreadBundle(bundles);
+    const workerURL = await sameOriginWorkerURL(bundle.mainWorker);
+    const worker = new Worker(workerURL); // classic worker (do NOT set {type:'module'})
+    const db = new duckdb.AsyncDuckDB(new duckdb.ConsoleLogger(), worker);
+    await db.instantiate(bundle.mainModule);
+    const conn = await db.connect();
+
+    // ---------- Manifest & state view ----------
+    async function loadManifest() {
+      const url = href("demo/manifest.json");        // expects web/demo/manifest.json (or /ui/demo/manifest.json on backend)
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error(`fetch manifest failed: ${res.status} ${res.statusText}`);
+      const m = await res.json();
+      const parquet = Array.isArray(m.parquet) ? m.parquet.map(p => href(p)) : [];
+      const arrow = Array.isArray(m.arrow) ? m.arrow.map(p => href(p)) : [];
+      if (parquet.length === 0 && arrow.length === 0) throw new Error("manifest has neither 'parquet' nor 'arrow' files");
+      return { parquet, arrow };
+    }
+
+    async function buildState() {
+      const { parquet, arrow } = await loadManifest();
+
+      try { await conn.query("INSTALL httpfs;"); } catch { }
+      try { await conn.query("LOAD httpfs;"); } catch { }
+
+      let unionSQL = "";
+      let engineLabel = "";
+
+      if (parquet.length > 0) {
+        unionSQL = parquet.map(f => `SELECT * FROM read_parquet('${f}')`).join(" UNION ALL ");
+        engineLabel = "read_parquet";
+      } else {
+        try { await conn.query("INSTALL arrow;"); } catch { }
+        try { await conn.query("LOAD arrow;"); } catch { }
+        unionSQL = arrow.map(f => `SELECT * FROM read_ipc('${f}')`).join(" UNION ALL ");
+        engineLabel = "read_ipc";
+      }
+
+      const t0 = performance.now();
+      await conn.query(`CREATE OR REPLACE VIEW state AS ${unionSQL}`);
+      const dt = (performance.now() - t0).toFixed(1);
+      metaEl.textContent = `Loaded ${parquet.length || arrow.length} file(s) via ${engineLabel}; state ready in ${dt} ms`;
+    }
+
+    // ---------- Render table ----------
+    function renderTable(table) {
+      // Convert Arrow table to array-of-objects (for demo simplicity; use LIMIT in SQL)
+      const rows = table.toArray();
+      const cols = table.schema.fields.map(f => f.name);
+
+      const tbl = document.createElement('table');
+      const thead = document.createElement('thead');
+      const trh = document.createElement('tr');
+      cols.forEach(c => { const th = document.createElement('th'); th.textContent = c; trh.appendChild(th); });
+      thead.appendChild(trh); tbl.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      for (const r of rows) {
+        const tr = document.createElement('tr');
+        for (const c of cols) {
+          const td = document.createElement('td');
+          let v = r[c];
+          // Render typed arrays / buffers as short hex
+          if (v && typeof v === 'object' && (v.BYTES_PER_ELEMENT || v instanceof ArrayBuffer)) {
+            const bytes = v instanceof ArrayBuffer ? new Uint8Array(v) : new Uint8Array(v.buffer || v);
+            const hex = Array.from(bytes.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join('');
+            v = `0x${hex}${bytes.length > 16 ? '…' : ''}`;
+          }
+          td.textContent = (v === null || v === undefined) ? '' : String(v);
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+      tbl.appendChild(tbody);
+      resultEl.appendChild(tbl);
+      return { rowCount: rows.length };
+    }
+
+    // ---------- Init ----------
+    try {
+      setStatus("Loading manifest…", "#e8eefc");
+      await buildState();
+      setStatus("Ready");
+    } catch (e) {
+      setStatus("Error", "#ffecec");
+      showError(String(e?.message || e));
+      console.error(e);
+    }
+
+    // ---------- UI bindings ----------
     el('fill').onclick = () => {
-      const q = el('examples').value; if (q) el('sql').value = q;
+      const q = el('examples').value;
+      if (q) el('sql').value = q;
+    };
+
+    el('init').onclick = async () => {
+      try {
+        clearOutput();
+        setStatus("Rebuilding…", "#e8eefc");
+        await buildState();
+        setStatus("Ready");
+      } catch (e) {
+        setStatus("Error", "#ffecec");
+        showError(String(e?.message || e));
+      }
     };
 
     el('run').onclick = async () => {
-      const engine = el('engine').value;
-      const sql = el('sql').value.trim();
-      el('error').textContent = '';
-      el('meta').textContent = '';
-      el('result').innerHTML = '';
-      if (!sql) { el('error').textContent = 'SQL is empty'; return; }
-
-      status.textContent = 'Running...';
-      status.style.background = '#e8eefc';
-      const t0 = performance.now();
+      clearOutput();
+      const sql = (el('sql').value || "").trim();
+      if (!sql) { showError("SQL is empty"); return; }
       try {
-        const res = await fetch('/api/query', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ engine, sql })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.detail || res.statusText);
+        setStatus("Running…", "#e8eefc");
+        const t0 = performance.now();
+        const table = await conn.query(sql);
         const dt = (performance.now() - t0).toFixed(1);
-
-        el('meta').innerHTML = `Rows: <b>${data.row_count}</b> · Engine: <span class="mono">${engine}</span> · Server: <b>${data.elapsed_ms} ms</b> · Roundtrip: <b>${dt} ms</b>`;
-
-        // Render table
-        const cols = data.columns || [];
-        const rows = data.rows || [];
-        const tbl = document.createElement('table');
-        const thead = document.createElement('thead');
-        const trh = document.createElement('tr');
-        cols.forEach(c => { const th = document.createElement('th'); th.textContent = c; trh.appendChild(th); });
-        thead.appendChild(trh); tbl.appendChild(thead);
-        const tbody = document.createElement('tbody');
-        rows.forEach(r => { const tr = document.createElement('tr'); r.forEach(v => { const td = document.createElement('td'); td.textContent = (v === null || v === undefined) ? '' : String(v); tr.appendChild(td); }); tbody.appendChild(tr); });
-        tbl.appendChild(tbody);
-        el('result').appendChild(tbl);
-      } catch (err) {
-        el('error').textContent = String(err.message || err);
-      } finally {
-        status.textContent = 'Idle';
-        status.style.background = '#f0f0f0';
+        const { rowCount } = renderTable(table);
+        metaEl.innerHTML = `Rows: <b>${rowCount}</b> · Engine: <span class="mono">duckdb-wasm</span> · Roundtrip: <b>${dt} ms</b>`;
+        setStatus("Ready");
+      } catch (e) {
+        setStatus("Error", "#ffecec");
+        showError(String(e?.message || e));
+        console.error(e);
       }
     };
   </script>
+
 </body>
+
 </html>

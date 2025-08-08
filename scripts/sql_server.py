@@ -26,8 +26,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 # Paths
-ARROW_DIR = Path("lake/hot")
-SQLITE_DB = Path("lake/sqlite.db")
+ARROW_DIR = Path("demo/lake/hot")
+SQLITE_DB = Path("demo/lake/sqlite.db")
 WEB_DIR = Path("web")  # contains index.html
 
 app = FastAPI(title="HarborX SQL Demo", version="0.1.0")
