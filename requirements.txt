@@ -1,11 +1,6 @@
-# Core dependencies
-pyarrow>=14.0.1,<15.0.0
-datafusion>=38.0.0,<39.0.0
-
-# Optional: for backend DuckDB usage
-duckdb>=1.0.0,<2.0.0
-
-# Utilities
+pyarrow>=14.0.1
+datafusion>=38.0.0
+duckdb>=1.0.0
 python-dotenv>=1.0.1
-fastapi>=0.103.0
-uvicorn[standard]>=0.23.0
+fastapi
+uvicorn[standard]
