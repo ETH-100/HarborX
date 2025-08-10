@@ -136,9 +136,7 @@ def main():
     gen_cmd = [sys.executable, os.path.join("bench","gen_blob.py"),
                "--rows", str(args.rows), "--parts", str(args.parts),
                "--out", "lake/blob", "--keyspace", str(K)]
-    # 注意：gen_blob.py 不支持 --exact-ratio，因此默认传入 --no-exact，避免未知参数
     if not args.no_exact:
-        # 留空，以后如果你给 gen_blob.py 加了此参数，再放开这里
         pass
     run(gen_cmd)
 

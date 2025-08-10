@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set PYEXE=.venv\bench\python.exe
+set PYEXE=.venv\Scripts\python.exe
 
 if not exist "%PYEXE%" (
   echo [setup] creating venv at .venv

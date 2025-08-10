@@ -1,5 +1,4 @@
 name: HarborX Benchmarks
-
 on:
   push:
     branches: [main]
@@ -20,8 +19,8 @@ jobs:
       UPDATE_RATIO: "0.5"
       WORKERS: 4
       CHUNK: 200000
-      WINDOWS: 1,4,16
-      OUT_MD: bench/report_ubuntu.md
+      WINDOWS: 1,4,16,64
+      OUT_MD: report_ubuntu.md
 
     steps:
       - uses: actions/checkout@v4
@@ -33,30 +32,13 @@ jobs:
 
       - name: Install deps
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install -U pip
+          python -m pip install -r requirements.txt
+          python - <<'PY'
+          import duckdb, pyarrow
+          print("[check] duckdb & pyarrow OK")
+          PY
 
-      - name: Make script executable
-        run: chmod +x bench/report_unix.sh
-
-      - name: Run benchmark
-        shell: bash
-        run: ./bench/report_unix.sh
-
-      - name: Publish run summary
-        if: always()
-        shell: bash
+      - name: Run report
         run: |
-          echo "# HarborX Window-Size Benchmark" >> "$GITHUB_STEP_SUMMARY"
-          if [ -f "$OUT_MD" ]; then
-            cat "$OUT_MD" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "_No OUT_MD produced._" >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: harborx-benchmark-ubuntu
-          path: ${{ env.OUT_MD }}
-          if-no-files-found: warn
+          bash scripts/report_linux.sh
