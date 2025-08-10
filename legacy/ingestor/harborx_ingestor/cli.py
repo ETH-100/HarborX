@@ -5,7 +5,7 @@ from .ingest import ingest_folder
 
 def make_demo(out:str, rows:int, parts:int, seed:int):
     repo  = Path(__file__).resolve().parents[4]  # repo root
-    gen = repo / "scripts" / "gen_blob.py"
+    gen = repo / "bench" / "gen_blob.py"
     os.makedirs(out, exist_ok=True)
     cmd = [sys.executable, str(gen), "--out", os.path.join(out, "blob"),
            "--rows", str(rows), "--parts", str(parts), "--seed", str(seed)]

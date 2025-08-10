@@ -6,7 +6,7 @@ from pathlib import Path
 def one(blob, outdir, chunk):
     out = Path(outdir) / (Path(blob).name.replace(".blob.gz", ".arrow"))
     out.parent.mkdir(parents=True, exist_ok=True)
-    cmd = [sys.executable, os.path.join("scripts","blob_to_arrow.py"),
+    cmd = [sys.executable, os.path.join("bench","blob_to_arrow.py"),
            "--blob", blob, "--out", str(out), "--chunk", str(chunk)]
     t0 = time.time(); p = subprocess.run(cmd, capture_output=True, text=True); dt = time.time()-t0
     ok = (p.returncode == 0)

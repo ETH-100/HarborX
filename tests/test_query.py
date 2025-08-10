@@ -5,7 +5,7 @@ def test_duckdb_reads_parquet(tmp_path):
     repo = pathlib.Path(__file__).resolve().parents[1]
     blobs = tmp_path / 'blobs'; out = tmp_path / 'parquet'
     blobs.mkdir()
-    subprocess.check_call([sys.executable, str(repo/'scripts'/'gen_blob.py'), '--out', str(blobs/'blob'), '--rows', '5000', '--parts', '1', '--seed', '3'])
+    subprocess.check_call([sys.executable, str(repo/'bench'/'gen_blob.py'), '--out', str(blobs/'blob'), '--rows', '5000', '--parts', '1', '--seed', '3'])
     subprocess.check_call([sys.executable, '-m', 'harborx_ingestor.cli', 'ingest', '--source', str(blobs), '--chain', '167001', '--out', str(out), '--row-group', '1024'])
     con = duckdb.connect()
     con.execute(f"CREATE VIEW state AS SELECT * FROM read_parquet('{out}/**/*.parquet');")

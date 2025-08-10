@@ -133,7 +133,7 @@ def main():
     os.makedirs("lake/base", exist_ok=True)
 
     # 1) gen
-    gen_cmd = [sys.executable, os.path.join("scripts","gen_blob.py"),
+    gen_cmd = [sys.executable, os.path.join("bench","gen_blob.py"),
                "--rows", str(args.rows), "--parts", str(args.parts),
                "--out", "lake/blob", "--keyspace", str(K)]
     # 注意：gen_blob.py 不支持 --exact-ratio，因此默认传入 --no-exact，避免未知参数
@@ -144,14 +144,14 @@ def main():
 
     # 2) blobs -> arrow
     t0=time.time()
-    run([sys.executable, os.path.join("scripts","blob_to_arrow_many.py"),
+    run([sys.executable, os.path.join("bench","blob_to_arrow_many.py"),
          "--pattern","lake/blob_*.blob.gz","--outdir","lake/hot","--workers",str(args.workers),
          "--chunk",str(args.chunk),"--skip-exists"])
     dt_arrow_write = time.time()-t0
 
     # 3) load SQLite (append baseline)
     t0=time.time()
-    run([sys.executable, os.path.join("scripts","blobs_to_sqlite_many.py"),
+    run([sys.executable, os.path.join("bench","blobs_to_sqlite_many.py"),
          "--pattern","lake/blob_*.blob.gz","--db","lake/sqlite.db","--reset","--mode","append"])
     dt_sqlite_append = time.time()-t0
 
@@ -176,7 +176,7 @@ def main():
         # Arrow compact base
         out_snap = f"lake/base/state_current_W{W:02d}.arrow"
         t0=time.time()
-        run([sys.executable, os.path.join("scripts","compact_arrow.py"),
+        run([sys.executable, os.path.join("bench","compact_arrow.py"),
              "--arrowdir","lake/hot","--out", out_snap, "--max-index", str(base_max)])
         dt_arrow_compact = time.time()-t0
 
@@ -187,7 +187,7 @@ def main():
 
         # SQLite compact base
         t0=time.time()
-        run([sys.executable, os.path.join("scripts","compact_sqlite.py"),
+        run([sys.executable, os.path.join("bench","compact_sqlite.py"),
              "--db","lake/sqlite.db","--source","state","--target",f"state_current_W{W:02d}",
              "--max-blob-index", str(base_max)])
         dt_sqlite_compact = time.time()-t0

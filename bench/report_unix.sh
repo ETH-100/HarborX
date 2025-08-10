@@ -17,7 +17,7 @@ CHUNK="${CHUNK:-200000}"
 WINDOWS="${WINDOWS:-1,4,16,64}"
 OUT_MD="${OUT_MD:-report_windows.md}"
 
-$PYEXE scripts/report.py \
+$PYEXE bench/report.py \
   --rows "$ROWS" --parts "$PARTS" \
   --update-ratio "$UPDATE_RATIO" \
   --workers "$WORKERS" --chunk "$CHUNK" \

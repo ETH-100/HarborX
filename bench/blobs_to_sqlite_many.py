@@ -16,7 +16,7 @@ def main():
 
     first = True
     for b in blobs:
-        cmd = [sys.executable, os.path.join("scripts","blob_to_sqlite.py"),
+        cmd = [sys.executable, os.path.join("bench","blob_to_sqlite.py"),
                "--blob", b, "--db", args.db, "--batch-size", str(args.batch_size), "--mode", args.mode]
         if args.reset and first: cmd.append("--reset")
         first = False

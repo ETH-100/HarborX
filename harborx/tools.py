@@ -36,10 +36,10 @@ def tidy_repo(apply:bool=False, aggressive:bool=False):
 
     # bench/legacy
     if aggressive:
-        mv("scripts", "bench/sqlite-synthetic")
+        mv("bench", "bench/sqlite-synthetic")
         mv("poc-sqlite-benchmark", "bench/sqlite-bench")
     else:
-        mv("scripts", "legacy/scripts")
+        mv("bench", "legacy/bench")
         mv("poc-sqlite-benchmark", "legacy/sqlite-benchmark")
 
     # misc legacy buckets

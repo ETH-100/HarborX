@@ -11,7 +11,7 @@ def main():
     repo = pathlib.Path(__file__).resolve().parents[1]
     blobs = pathlib.Path(args.out)/'blobs'; parquet = pathlib.Path(args.out)/'parquet'
     blobs.mkdir(parents=True, exist_ok=True); parquet.mkdir(parents=True, exist_ok=True)
-    subprocess.check_call([sys.executable, str(repo/'scripts'/'gen_blob.py'),
+    subprocess.check_call([sys.executable, str(repo/'bench'/'gen_blob.py'),
                            '--out', str(blobs/'blob'), '--rows', str(args.rows),
                            '--parts', str(args.parts), '--seed', str(args.seed)])
     subprocess.check_call([sys.executable, '-m', 'harborx_ingestor.cli', 'ingest',
