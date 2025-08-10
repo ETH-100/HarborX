@@ -41,4 +41,4 @@ jobs:
 
       - name: Run report
         run: |
-          bash scripts/report_linux.sh
+          bash bench/report_unix.sh
