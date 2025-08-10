@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "harborx"
+version = "0.1.0"
+description = "HarborX PoC: Blob→Arrow/Parquet→Browser SQL (unified CLI)"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{name = "HarborX"}]
+dependencies = []
+
+[project.optional-dependencies]
+cli = [
+  "requests>=2.31",
+  "pyarrow>=14",
+  "numpy>=1.25",
+]
+
+[project.scripts]
+harborx = "harborx.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["harborx"]

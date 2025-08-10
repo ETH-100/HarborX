@@ -1,12 +1,10 @@
-name: Deploy Web to GitHub Pages
+name: Deploy Web to GitHub Pages (PoC static)
 
 on:
   push:
     branches: [main]
     paths:
-      - "web/**"
-      - "scripts/make_demo_data.py"
-      - "requirements.txt"
+      - "apps/web/**"
   workflow_dispatch: {}
 
 permissions:
@@ -24,21 +22,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
+      - name: Verify static files exist
+        run: |
+          test -f apps/web/index.html
+          test -f apps/web/data/manifest.json
 
-      - name: Install deps
-        run: pip install -r requirements.txt
-
-      - name: Generate tiny demo dataset (Parquet) into web/demo
-        run: python scripts/make_demo_data.py --out-dir web/demo --rows 8000 --parts 4 --update-ratio 0.5 --drop-arrow
-
-      - name: Upload artifact (web/)
+      - name: Upload artifact (apps/web/)
         uses: actions/upload-pages-artifact@v3
         with:
-          path: web
+          path: apps/web
 
   deploy:
     needs: build

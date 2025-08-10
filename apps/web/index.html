@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HarborX SQL</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:1100px;margin:32px auto;padding:0 16px}
+    textarea{width:100%;min-height:160px;font-family:ui-monospace,Consolas,monospace;font-size:14px}
+    table{border-collapse:collapse;width:100%;margin-top:12px}
+    th,td{border:1px solid #ddd;padding:6px 8px;font-size:13px;vertical-align:top}
+    th{background:#f5f5f5;text-align:left;position:sticky;top:0}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+    .muted{color:#666}.btn{padding:8px 14px;border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer}
+    .btn:hover{background:#f7f7f7}.pill{padding:4px 8px;border-radius:999px;background:#f0f0f0}
+    .error{color:#b00020;white-space:pre-wrap}.mono{font-family:ui-monospace,Consolas,monospace}.footer{margin-top:18px;color:#888;font-size:12px}
+  </style>
+</head>
+<body>
+  <h1>HarborX SQL</h1>
+  <p class="muted">Loads Arrow/Parquet produced from real rollup blobs (EIP-4844) and builds a <code>state</code> view in DuckDB-WASM.</p>
+  <div class="row" style="margin:12px 0">
+    <span id="status" class="pill">Booting…</span>
+    <span id="meta" class="muted"></span>
+  </div>
+  <div class="row">
+    <label>Examples:</label>
+    <select id="examples">
+      <option value="">-- choose --</option>
+      <option value="SELECT COUNT(*) AS rows FROM state;">COUNT rows (state)</option>
+      <option value="SELECT type, COUNT(*) AS cnt FROM state GROUP BY 1 ORDER BY 2 DESC;">Rows by type</option>
+      <option value="SELECT tx_hash, blob_index, MAX(position) AS words FROM state GROUP BY 1,2 ORDER BY 3 DESC LIMIT 20;">Words per blob (top 20)</option>
+      <option value="SELECT timestamp, tx_hash, blob_index, position FROM state ORDER BY timestamp DESC, blob_index DESC, position DESC LIMIT 100;">Latest 100 words</option>
+    </select>
+    <button class="btn" id="fill">Insert</button>
+    <button class="btn" id="init">Rebuild state</button>
+  </div>
+  <textarea id="sql" placeholder="Write your SQL here..."></textarea>
+  <div class="row" style="margin-top:8px">
+    <button class="btn" id="run">Run</button>
+    <span class="muted">Use LIMIT for large outputs.</span>
+  </div>
+  <div id="error" class="error"></div>
+  <div id="result"></div>
+  <div class="footer">
+    <span class="mono">manifest</span> is fetched from <code>data/manifest.json</code> (Arrow first, Parquet fallback).
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

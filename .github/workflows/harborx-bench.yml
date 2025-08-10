@@ -4,8 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-      - "scripts/**"
+      - "bench/**"
       - "requirements.txt"
+      - "pyproject.toml"
   workflow_dispatch: {}
 
 jobs:
@@ -20,7 +21,7 @@ jobs:
       WORKERS: 4
       CHUNK: 200000
       WINDOWS: 1,4,16
-      OUT_MD: report_ubuntu.md
+      OUT_MD: bench/report_ubuntu.md
 
     steps:
       - uses: actions/checkout@v4
@@ -35,11 +36,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Make script executable
+        run: chmod +x bench/report_unix.sh
+
       - name: Run benchmark
         shell: bash
-        run: |
-          chmod +x scripts/report_unix.sh
-          ./scripts/report_unix.sh
+        run: ./bench/report_unix.sh
 
       - name: Publish run summary
         if: always()
@@ -48,6 +50,8 @@ jobs:
           echo "# HarborX Window-Size Benchmark" >> "$GITHUB_STEP_SUMMARY"
           if [ -f "$OUT_MD" ]; then
             cat "$OUT_MD" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "_No OUT_MD produced._" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Upload artifacts
