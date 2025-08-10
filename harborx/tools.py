@@ -19,80 +19,8 @@ def build_manifest(root:str="apps/web", data:str="data", include_parquet:bool=Fa
         json.dump({"arrow":sorted(arrow), **({"parquet":sorted(parquet)} if include_parquet else {})}, fp, indent=2)
     print(f"[manifest] wrote {len(arrow)} arrow file(s){' and '+str(len(parquet))+' parquet file(s)' if include_parquet else ''} at {data_dir}")
 
-def tidy_repo(apply:bool=False, aggressive:bool=False):
-    plan = []
-
-    def mv(src, dst):
-        if os.path.exists(src):
-            plan.append(("move", src, dst))
-
-    def rm(path):
-        if os.path.exists(path):
-            plan.append(("remove", path))
-
-    # apps/web & docs
-    mv("poc-e2e-blob-sql/packages/web-demo", "apps/web")
-    mv("poc-e2e-blob-sql/packages/docs", "docs")
-
-    # bench/legacy
-    if aggressive:
-        mv("bench", "bench/sqlite-synthetic")
-        mv("poc-sqlite-benchmark", "bench/sqlite-bench")
-    else:
-        mv("bench", "legacy/bench")
-        mv("poc-sqlite-benchmark", "legacy/sqlite-benchmark")
-
-    # misc legacy buckets
-    mv("web", "legacy/web")
-    mv("data", "legacy/data")
-    mv("lake", "legacy/lake")
-    mv("poc-e2e-blob-sql/packages/ingestor", "legacy/ingestor")
-
-    # nested mistake cleanup
-    nested = "poc-e2e-blob-sql/packages/web-demo/poc-e2e-blob-sql"
-    if os.path.exists(nested):
-        plan.append(("remove", nested))
-
-    print("=== Proposed repo layout ===")
-    print("harborx/                 # unified CLI + data channel")
-    print("apps/web/                # pure-frontend demo (DuckDB-WASM)")
-    print("docs/                    # docs")
-    print("bench/                   # benchmarks (optional)")
-    print("legacy/                  # archived code")
-    print(".gitignore               # ignore data/")
-    print("pyproject.toml           # entrypoint: harborx")
-    print()
-
-    for op, a, b in plan:
-        if op == "move":
-            print(f" - MOVE  {a}  ->  {b}")
-        else:
-            print(f" - RM    {a}")
-
-    if not apply:
-        print("\n(dry-run) Nothing changed. To apply:\n  harborx tidy --apply [--aggressive]")
-        return
-
-    for op, a, b in plan:
-        if op == "move":
-            os.makedirs(os.path.dirname(b), exist_ok=True)
-            if os.path.exists(b):
-                base = os.path.basename(a.rstrip('/\\'))
-                dst = os.path.join(b, f"_migrated_{base}")
-                print(f"   ! {b} exists, moving into {dst}")
-                shutil.move(a, dst)
-            else:
-                shutil.move(a, b)
-        elif op == "remove":
-            if os.path.isdir(a):
-                shutil.rmtree(a)
-            else:
-                os.remove(a)
-    print("\n[tidy] repo re-organization complete.")
-
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--aggressive", action="store_true")
     args = ap.parse_args()
-    tidy_repo(apply=args.apply, aggressive=args.aggressive)

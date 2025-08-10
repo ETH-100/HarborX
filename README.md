@@ -1,6 +1,6 @@
 # HarborX — Blob Direct Write & High-Performance SQL
 
-HarborX is a high-performance data engine for Web3. It ingests incremental **blob** data from L2/rollup ecosystems, writes directly into **columnar formats** (Arrow/Parquet), and exposes a **standard SQL** interface that runs either fully in the browser (DuckDB-WASM) or on your backend. The long-term goal is a verifiable pipeline with **ZK proofs** (ZKSQL) for trusted computation and cross-chain verification.
+HarborX is a high-performance data engine for Web3. It ingests incremental **blob** data from L2/rollup ecosystems, writes directly into **columnar formats** (Arrow/Parquet), and exposes a **standard SQL** interface. The long-term goal is a verifiable pipeline with **ZK proofs** (ZKSQL) for trusted computation and cross-chain verification.
 
 ## Key Features
 
@@ -8,7 +8,7 @@ HarborX is a high-performance data engine for Web3. It ingests incremental **blo
     
     Pull real blob payloads and write straight to Arrow/Parquet—no heavyweight node sync or custom ETL needed. Supports small, incremental updates for low latency.
     
-- **SQL Anywhere (Frontend-Only or Backend)**
+- **SQL Anywhere**
     
     Query latest and historical data with SQL. The PoC ships a **pure-frontend** demo (DuckDB-WASM) that reads Arrow/Parquet over HTTP, no server code required.
     
@@ -34,7 +34,7 @@ pip install -e .[cli]
 
 ```
 
-## Option A — Use Existing Static Data (most stable for PoC)
+## Option A — Use Existing Static Data
 
 Commit your prepared dataset under `apps/web/data/` (including `manifest.json`) and run:
 
@@ -44,7 +44,7 @@ harborx serve --dir apps/web --port 8080
 
 ```
 
-## Option B — Fetch a Tiny Real Dataset (Blobscan)
+## Option B — Fetch a Tiny Real Dataset
 
 If you want to refresh the PoC data from the public API:
 
@@ -84,9 +84,9 @@ LIMIT 50;
 
 ---
 
-# Unified CLI
+# CLI
 
-All PoC commands are available via the single `harborx` entrypoint:
+All commands are available via the single `harborx` entrypoint:
 
 - **Fetch blobs + write Arrow/Parquet + manifest**
     
@@ -96,37 +96,26 @@ All PoC commands are available via the single `harborx` entrypoint:
     
     ```
     
-- **Serve static web demo (correct MIME types)**
+- **Serve static web demo**
     
     ```bash
     harborx serve --dir apps/web --port 8080
     
     ```
-    
-- **Tidy repo (plan vs apply)**
-    
-    ```bash
-    harborx tidy
-    harborx tidy --apply
-    # (optional) aggressive consolidation into bench/
-    harborx tidy --apply --aggressive
-    
-    ```
-    
 
 ---
 
-# Frontend-Only Demo
+# Frontend Demo
 
 - Location: `apps/web/`
 - Data folder: `apps/web/data/`
 - Manifest: `apps/web/data/manifest.json` (lists Arrow/Parquet files)
 
-The app resolves file paths **relative to the manifest**. If you ever see 404s like `/data/data/...`, it means both manifest & code added the `data/` prefix. Fix either the manifest (no `data/` prefix) **or** the app’s normalization (strip `data/` if present)—don’t do both.
+The app resolves file paths **relative to the manifest**. 
 
 ---
 
-# Repository Layout (Recommended)
+# Repository Layout
 
 ```base
 harborx/       # unified CLI + data channel (blobscan, tools)
@@ -137,25 +126,8 @@ legacy/        # archived/older code and experiments
 
 ```
 
-Generated artifacts (e.g., large datasets) are typically ignored by Git—except in PoC static mode, where you intentionally commit a tiny `apps/web/data/` for Pages.
-
----
-
-# Roadmap
-
-- **ZKSQL integration**: verifiable write & query proofs (SNARK-friendly schemas).
-- **Connectors**: more sources (e.g., rollup-specific indexers) and push-based ingest.
-- **Scaling knobs**: distributed query backends, tiered storage, caching layers.
-- **Dev-friendly packaging**: Docker + Compose for “click-to-run” deployments.
-
 ---
 
 # License
 
-MIT (PoC). See `LICENSE`.
-
----
-
-**Questions / Feedback?**
-
-File an issue or ping us with repro steps and logs (CLI args, browser console error, small manifest). Happy to help you get HarborX running smoothly.
+Apache-2.0. See `LICENSE`.
