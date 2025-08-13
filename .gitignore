@@ -32,3 +32,7 @@ build/
 
 # Node
 node_modules/
+
+apps/web/data/local/
+apps/web/data/_backups/
+apps/web/data/*/objects/

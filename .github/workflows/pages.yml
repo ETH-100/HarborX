@@ -25,7 +25,7 @@ jobs:
       - name: Verify static files exist
         run: |
           test -f apps/web/index.html
-          test -f apps/web/data/manifest.json
+          test -f apps/web/data/fixed/manifest.json
 
       - name: Upload artifact (apps/web/)
         uses: actions/upload-pages-artifact@v3
