@@ -1,29 +1,18 @@
-# HarborX — Blob Direct Write & High-Performance SQL
+# **HarborX — Efficient Web3 Data Engine**
 
-HarborX is a high-performance data engine for Web3. It ingests incremental **blob** data from L2/rollup ecosystems, writes directly into **columnar formats** (Arrow/Parquet), and exposes a **standard SQL** interface. The long-term goal is a verifiable pipeline with **ZK proofs** (ZKSQL) for trusted computation and cross-chain verification.
+HarborX is **data-source–centric**. It lets you subscribe to, compose, process, and publish data sources—avoiding repeated collection/indexing/cleaning—so you can focus on your product. HarborX uses a modular design to allow custom data pipelines, and a unified intermediate model that works across heterogeneous data origins, databases, and query engines.
 
-## Key Features
+### Core Capabilities
 
-- **Blob → Columnar (Direct Write)**
-    
-    Pull real blob payloads and write straight to Arrow/Parquet—no heavyweight node sync or custom ETL needed. Supports small, incremental updates for low latency.
-    
-- **SQL Anywhere**
-    
-    Query latest and historical data with SQL. The PoC ships a **pure-frontend** demo (DuckDB-WASM) that reads Arrow/Parquet over HTTP, no server code required.
-    
-- **Fast & Lightweight**
-    
-    Columnar storage + on-demand loading means less I/O and memory. PoC keeps things simple; you can scale up later with distributed engines (e.g., DataFusion/others).
-    
-- **ZKSQL (Experimental Roadmap)**
-    
-    Design path toward verifiable writes and query proofs, enabling trust-minimized analytics and cross-chain state checks.
-    
+- **Verifiable Blob Direct-Write**: Efficiently materializes **ZK Rollup** blobs into Parquet, retains provenance proofs for data verification, and enables SQL queries over on-chain state for all integrated ZK Rollups.
+- **Subscribe & Catch-Up**: Developers subscribe to data sources as easily as installing an `npm` package. HarborX uses **Mirror** to auto-fetch and continuously catch up, and leverages **`AT commit_id`** to provide a consistent, replayable query view.
+- **Modularity**:
+    - **Upstream**: Use `SourceAdapter` to support join queries across heterogeneous sources such as ZK Rollups, indexers, Farcaster, etc.
+    - **Downstream**: Use `Gateway/Materializer` to target different databases and query engines (DuckDB/PG/CH, etc.).
+- **Publish & Reuse**: Publish derived results as new data sources; others can subscribe and perform cross-source joins—compounding reusable ecosystem assets and reducing duplicated indexing work.
+- **Open Distribution**: Persist data to decentralized storage, and broadcast pointer events over a **P2P** network to reduce single-point dependency and platform lock-in.
 
----
-
-# Quickstart (PoC)
+## **Quickstart (PoC)**
 
 > Requires Python 3.9+.
 > 
@@ -31,10 +20,53 @@ HarborX is a high-performance data engine for Web3. It ingests incremental **blo
 ```bash
 python -m pip install -U pip
 pip install -e .[cli]
-
 ```
 
-## Option A — Use Existing Static Data
+### Add a Data Source
+
+Add a data source with one command:
+
+```bash
+harborx add --base https://play.harborx.tech/data/ --subdir local -m --port 8080
+```
+
+You’ll see output like:
+
+```bash
+harborx add --base https://play.harborx.tech/data/ --subdir local -m --port 8080
+[2025-08-13 23:46:03] 🔗 Using Lake base: https://play.harborx.tech/data
+[2025-08-13 23:46:03] ⬇️  Fetching manifest.json from https://play.harborx.tech/data
+[2025-08-13 23:46:04] 🧭 Rewriting relative paths → absolute URLs
+[2025-08-13 23:46:04] 📄 No local manifest found, adopting remote manifest as local
+[2025-08-13 23:46:04] 🧱 Materializing → HarborX\apps\web\data\local\objects
+[2025-08-13 23:46:06]   ↓ https://play.harborx.tech/data/1456cfb63a334a39a06df3ee120daafb-0.arrow
+    24cfd00e87ded65b.arrow done in 7.3s
+[2025-08-13 23:46:17]   ↓ https://play.harborx.tech/data/2bb64d90458245e990c29acd605dadce-0.arrow
+    db3c961ccec074e1.arrow done in 21.7s
+[2025-08-13 23:52:05]   ↓ https://play.harborx.tech/data/chain_id=167001/date=20310/topic=state_diff/2bb64d90458245e990c29acd605dadce-0.parquet
+    b2089242e6daa02b.parquet done in 1.7s
+[2025-08-13 23:52:12]   ↓ https://play.harborx.tech/data/chain_id=167001/date=20310/topic=state_diff/7721bc175b1a4194a04f2779536f0d15-0.parquet
+    4a1aea6b788713e2.parquet done in 1.5s
+[2025-08-13 23:52:14] 🔍 Validating a few entries
+[2025-08-13 23:52:14]   ✅ local OK: objects/24cfd00e87ded65b.arrow
+[2025-08-13 23:52:14]   ✅ local OK: objects/db3c961ccec074e1.arrow
+[2025-08-13 23:52:14]   ✅ local OK: objects/360ce304038b70f4.parquet
+[2025-08-13 23:52:14]   ✅ local OK: objects/d7e92bfb8c72c3ac.parquet
+[2025-08-13 23:52:14] 📊 Merge summary:
+  • arrow:   2 items
+  • parquet: 2 items
+  • files:   0 items
+  • segments:0 items
+  (Δ added) arrow:+2 parquet:+2 files:+0 segments:+0
+  Probed OK:4 FAIL:0
+[2025-08-13 23:52:14] 🚀 Starting harborx static server at http://127.0.0.1:8080
+[2025-08-13 23:52:14]     Serving directory: HarborX\apps\web (manifest at HarborX\apps\web\data\local\manifest.json)
+[serve] http://127.0.0.1:8080 (root=HarborX\apps\web)
+```
+
+This is a PoC example; the production version will automatically catch up and stay in sync.
+
+## Use Existing Static Data
 
 Commit your prepared dataset under `apps/web/data/` (including `manifest.json`) and run:
 
@@ -44,7 +76,7 @@ harborx serve --dir apps/web --port 8080
 
 ```
 
-## Option B — Fetch a Tiny Real Dataset
+## Fetch a Tiny Real Dataset
 
 If you want to refresh the PoC data from the public API:
 
@@ -93,14 +125,12 @@ All commands are available via the single `harborx` entrypoint:
     ```bash
     harborx blobscan --limit 3 --out apps/web/data --parquet
     harborx manifest --root apps/web --data data --include-parquet
-    
     ```
     
 - **Serve static web demo**
     
     ```bash
     harborx serve --dir apps/web --port 8080
-    
     ```
 
 ---
