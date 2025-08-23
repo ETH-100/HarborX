@@ -1,7 +1,7 @@
 {
   "arrow": [],
   "parquet": [
-    "data/local/state_diff/storage_diffs/1115983-1116330-bee97025.parquet"
+    "data/fixed/state_diff/storage_diffs/1115983-1116330-bee97025.parquet"
   ],
   "files": [],
   "segments": []
