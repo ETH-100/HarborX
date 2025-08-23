@@ -17,7 +17,6 @@ function getMeta(name) { const el = document.querySelector(`meta[name="${name}"]
 function getQ(name) { return new URLSearchParams(location.search).get(name) || ""; }
 
 function resolveDataSubdir() {
-  // Priority: explicit override (global/meta/query)
   const ov = (window.HX_DATA_SUBDIR
     || (document.querySelector('meta[name="hx-data-subdir"]')?.content || "")
     || new URLSearchParams(location.search).get("data_subdir")
@@ -25,11 +24,9 @@ function resolveDataSubdir() {
     || "").toLowerCase();
   if (ov === "fixed" || ov === "local") return ov;
 
-  // --- Default heuristic ---
   const host = location.hostname;
-  if (host.endsWith("harborx.tech")) return "fixed";
-
-  return "local";
+  if (host === "localhost" || host === "127.0.0.1") return "local";
+  return "fixed";
 }
 
 async function registerTablesFromJSON(conn){
