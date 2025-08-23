@@ -16,6 +16,7 @@ cli = [
   "requests>=2.31",
   "pyarrow>=14",
   "numpy>=1.25",
+  "pandas>=2.0",
 ]
 
 [project.scripts]

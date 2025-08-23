@@ -1,0 +1,12 @@
+{
+  "storage_diffs": [
+    "data/local/state_diff/storage_diffs/1115983-1116330-bee97025.parquet"
+  ],
+  "declared_classes": [],
+  "deployed_or_replaced": [
+    "data/local/state_diff/deployed_or_replaced/1115983-1116330-bee97025.parquet"
+  ],
+  "nonces": [
+    "data/local/state_diff/nonces/1115983-1116330-bee97025.parquet"
+  ]
+}

@@ -1,24 +1,8 @@
 {
-  "arrow": [
-    "1456cfb63a334a39a06df3ee120daafb-0.arrow",
-    "2bb64d90458245e990c29acd605dadce-0.arrow",
-    "7721bc175b1a4194a04f2779536f0d15-0.arrow",
-    "chain_id=1/date=2025-08-10/topic=raw/part-1754810196797.arrow",
-    "chain_id=1/date=2025-08-10/topic=raw/part-1754810224199.arrow",
-    "chain_id=1/date=2025-08-10/topic=raw/part-1754810271343.arrow",
-    "chain_id=1/date=2025-08-10/topic=raw/part-1754815735895.arrow",
-    "chain_id=1/date=2025-08-10/topic=raw/part-1754815761622.arrow",
-    "chain_id=1/date=2025-08-10/topic=raw/part-1754815784277.arrow"
-  ],
+  "arrow": [],
   "parquet": [
-    "chain_id=1/date=2025-08-10/topic=raw/part-1754810196797.parquet",
-    "chain_id=1/date=2025-08-10/topic=raw/part-1754810224199.parquet",
-    "chain_id=1/date=2025-08-10/topic=raw/part-1754810271343.parquet",
-    "chain_id=1/date=2025-08-10/topic=raw/part-1754815735895.parquet",
-    "chain_id=1/date=2025-08-10/topic=raw/part-1754815761622.parquet",
-    "chain_id=1/date=2025-08-10/topic=raw/part-1754815784277.parquet",
-    "chain_id=167001/date=20310/topic=state_diff/1456cfb63a334a39a06df3ee120daafb-0.parquet",
-    "chain_id=167001/date=20310/topic=state_diff/2bb64d90458245e990c29acd605dadce-0.parquet",
-    "chain_id=167001/date=20310/topic=state_diff/7721bc175b1a4194a04f2779536f0d15-0.parquet"
-  ]
+    "data/local/state_diff/storage_diffs/1115983-1116330-bee97025.parquet"
+  ],
+  "files": [],
+  "segments": []
 }
