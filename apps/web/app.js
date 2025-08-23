@@ -16,14 +16,20 @@ const showError = (m) => { if (errorEl) errorEl.textContent = m || ""; };
 function getMeta(name) { const el = document.querySelector(`meta[name="${name}"]`); return el?.content || ""; }
 function getQ(name) { return new URLSearchParams(location.search).get(name) || ""; }
 
-function resolveDataSubdir(){
+function resolveDataSubdir() {
+  // Priority: explicit override (global/meta/query)
   const ov = (window.HX_DATA_SUBDIR
     || (document.querySelector('meta[name="hx-data-subdir"]')?.content || "")
     || new URLSearchParams(location.search).get("data_subdir")
     || new URLSearchParams(location.search).get("mode")
     || "").toLowerCase();
   if (ov === "fixed" || ov === "local") return ov;
-  return location.hostname.endsWith("harborx.tech") ? "fixed" : "local";
+
+  // --- Default heuristic ---
+  const host = location.hostname;
+  if (host.endsWith("harborx.tech")) return "fixed";
+
+  return "local";
 }
 
 async function registerTablesFromJSON(conn){
